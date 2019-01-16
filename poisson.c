@@ -5,8 +5,10 @@
 #include "iterator.h"
 #include "init.h"
 #include "datatools.h"
+#include "xtime.h"
 
-void jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
+
+int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
     double **uold = malloc_2d(N + 2, N + 2);
     for (int i = 0; i < N + 2; ++i) {
         for (int j = 0; j < N + 2; ++j) {
@@ -20,18 +22,18 @@ void jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs)
         d = jacobiIteration(u, &uold, f, N);
         k += 1;
     }
-    printf("%d  ", k);
     free_2d(uold);
+    return k;
 }
 
-void gauss(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
+int gauss(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
     double d = DBL_MAX;
     int k = 0;
     while (d > threshold && k < kmax) {
         d = gaussIteration(u, f, N);
         k += 1;
     }
-    printf("%d  ", k);
+    return k;
 }
 
 int main(int argc, char *argv[]) {
@@ -40,6 +42,9 @@ int main(int argc, char *argv[]) {
     double threshold;
     char *funcType;
     int bs;
+    double mflops, memory;
+    double ts, te;
+    int iterations;
 
     N = 512;
     kmax = 10000;
@@ -67,17 +72,30 @@ int main(int argc, char *argv[]) {
     double gridspacing = (double) 2 / (N + 1);
     double **f = generateF(N, gridspacing);
     double **u = generateU(N);
+    // Initializing time
+    init_timer();
+    ts = xtime();
+
     if (strcmp(funcType, "jacobi") == 0) {
-        printf("Running jacobi\n");
-        jacobi(N, kmax, threshold, &u, &f, bs);
+        memory = ((N+2) * (N+2) * 2 + (N*N)) * sizeof(double);
+        iterations = jacobi(N, kmax, threshold, &u, &f, bs);
     } else if (strcmp(funcType, "gauss") == 0) {
         printf("Running gauss\n");
-        gauss(N, kmax, threshold, &u, &f, bs);
-    }
+        memory = ((N+2) * (N+2) + (N*N)) * sizeof(double);
+        iterations = gauss(N, kmax, threshold, &u, &f, bs);
+    } else {
+        printf("First parameter should be either jacobi or gauss");
+        exit(1);
 
-    if (N < 16) {
-        print_matrix(u, N + 2);
     }
+    te = xtime() - ts;
+    mflops = 1.0e-06 * iterations * (N * N * FLOP + 4); // +4 is for sqrt
+    mflops /= te;
+    memory /= 1024.0; // KB
 
+
+    printf("MFLOP/S: %f\n", mflops);
+    printf("Memory footprint: %f\n", memory);
+    //print_matrix(u, N + 2);
     return 0;
 }
