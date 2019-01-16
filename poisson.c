@@ -6,7 +6,7 @@
 #include "init.h"
 #include "datatools.h"
 
-void jacobi(int N, int kmax, double threshold, double ***u, double ***f, double gridspacingsqr) {
+void jacobi(int N, int kmax, double threshold, double ***u, double ***f) {
     double **uold = malloc_2d(N + 2, N + 2);
     for (int i = 0; i < N + 2; ++i) {
         for (int j = 0; j < N + 2; ++j) {
@@ -17,18 +17,18 @@ void jacobi(int N, int kmax, double threshold, double ***u, double ***f, double 
     int k = 0;
     while (d > threshold && k < kmax) {
         swap(u, &uold);
-        d = jacobiIteration(u, &uold, f, gridspacingsqr, N);
+        d = jacobiIteration(u, &uold, f, N);
         k += 1;
     }
     printf("%d  ", k);
     free_2d(uold);
 }
 
-void gauss(int N, int kmax, double threshold, double ***u, double ***f, double gridspacingsqr) {
+void gauss(int N, int kmax, double threshold, double ***u, double ***f) {
     double d = DBL_MAX;
     int k = 0;
     while (d > threshold && k < kmax) {
-        d = gaussIteration(u, f, gridspacingsqr, N);
+        d = gaussIteration(u, f, N);
         k += 1;
     }
     printf("%d  ", k);
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     double threshold;
     char *funcType;
 
-    N = 8;
+    N = 512;
     kmax = 10000;
     threshold = 0.1;
     funcType = "jacobi";
@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
     double **u = generateU(N);
     if (strcmp(funcType, "jacobi") == 0) {
         printf("Running jacobi\n");
-        jacobi(N, kmax, threshold, &u, &f, gridspacing * gridspacing);
+        jacobi(N, kmax, threshold, &u, &f);
     } else if (strcmp(funcType, "gauss") == 0) {
         printf("Running gauss\n");
-        gauss(N, kmax, threshold, &u, &f, gridspacing * gridspacing);
+        gauss(N, kmax, threshold, &u, &f);
     }
 
     print_matrix(u, N + 2);

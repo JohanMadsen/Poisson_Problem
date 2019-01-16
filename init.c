@@ -3,12 +3,13 @@
 
 double **generateF(int N, double gridspacing) {
     double **f = malloc_2d(N, N);
+    double constant=gridspacing*gridspacing*200;
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < N; ++j) {
             f[i][j] = 0;
             if (gridspacing * i >= 1 && gridspacing * i <= 1 + 1.0 / 3 && gridspacing * j >= 1.0 / 3 &&
                 gridspacing * j <= 2.0 / 3) {
-                f[i][j] = 200.0;
+                f[i][j] = constant;
             }
         }
     }
