@@ -4,8 +4,8 @@ TARGET	= main.$(CC)
 
 CC	= gcc
 INCS	=
-DBG	=
-OPT	= -Ofast
+DBG	= -g
+OPT	= -Ofast -march=native -fno-trapping-math -funroll-loops
 PARA	= -fopenmp
 CFLAGS	= $(DBG) $(OPT) $(PARA) $(XOPTS)
 
