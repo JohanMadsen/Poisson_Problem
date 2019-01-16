@@ -1,5 +1,6 @@
 #include <math.h>
 #include "iterator.h"
+#include <stdio.h>
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -56,21 +57,24 @@ double jacobiIterationBlk(double ***u, double ***uold, double ***f, int N, int b
     return sqrt(sum);
 }
 
-
 double jacobiIteration(double ***u, double ***uold, double ***f, int N) {
     double temp;
     double sum = 0;
-    for (int i = 1; i < N + 1; ++i) {
-        for (int j = 1; j < N + 1; ++j) {
-            temp = (*u)[i][j];
-            (*u)[i][j] = 0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
-                                 (*f)[i - 1][j - 1]);
-            sum += ((*u)[i][j] - temp) * ((*u)[i][j] - temp);
+    int i, j;
+#pragma omp parallel
+    {
+#pragma omp for private(temp, i, j) reduction(+: sum)
+        for (i = 1; i < N + 1; ++i) {
+            for (j = 1; j < N + 1; ++j) {
+                temp = (*u)[i][j];
+                (*u)[i][j] = 0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
+                                     (*f)[i - 1][j - 1]);
+                sum += ((*u)[i][j] - temp) * ((*u)[i][j] - temp);
+            }
         }
     }
     return sqrt(sum);
 }
-
 
 double jacobiIteration2(double ***u, double ***uold, double ***f, int N) {
 

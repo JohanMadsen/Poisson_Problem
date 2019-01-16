@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     kmax = 10000;
     threshold = 0.1;
     funcType = "jacobi";
-    bs = 16;
+    bs = N;
 
     // command line arguments for the three sizes above
     if (argc >= 2)
@@ -71,17 +71,23 @@ int main(int argc, char *argv[]) {
     }
 
     double gridspacing = (double) 2 / (N + 1);
-    double **f = generateF(N, gridspacing);
-    double **u = generateU(N);
+
+    double **f;
+    double **u;
+//#pragma omp parallel
+//    {
+    f = generateF(N, gridspacing, bs);
+    u = generateU(N, bs);
+    //   }
     // Initializing time
     gettimeofday(&timecheck, NULL);
-    ts = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
+    ts = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
 
     if (strcmp(funcType, "jacobi") == 0) {
-        memory = ((N+2) * (N+2) * 2 + (N*N)) * sizeof(double);
+        memory = ((N + 2) * (N + 2) * 2 + (N * N)) * sizeof(double);
         iterations = jacobi(N, kmax, threshold, &u, &f, bs);
     } else if (strcmp(funcType, "gauss") == 0) {
-        memory = ((N+2) * (N+2) + (N*N)) * sizeof(double);
+        memory = ((N + 2) * (N + 2) + (N * N)) * sizeof(double);
         iterations = gauss(N, kmax, threshold, &u, &f, bs);
     } else {
         printf("First parameter should be either jacobi or gauss");
@@ -90,13 +96,12 @@ int main(int argc, char *argv[]) {
     }
     // Get elapsed time
     gettimeofday(&timecheck, NULL);
-    te = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
+    te = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
     long elapsed = (te - ts) / 1000;
 
     mflops = 1.0e-06 * iterations * (N * N * FLOP + 4); // +4 is for sqrt
     mflops /= elapsed;
     memory /= 1024.0; // KB
-
 
     printf("%f\t", mflops); // MFLOP/S
     printf("%.3f\t", (double) elapsed); // Time spent
