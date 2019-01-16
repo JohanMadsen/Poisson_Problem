@@ -94,8 +94,8 @@ int main(int argc, char *argv[]) {
     memory /= 1024.0; // KB
 
 
-    printf("MFLOP/S: %f\n", mflops);
-    printf("Memory footprint: %f\n", memory);
+    printf("MFLOP/S: %f\t", mflops);
+    printf("Memory FP: %f\n", memory);
     //print_matrix(u, N + 2);
     return 0;
 }

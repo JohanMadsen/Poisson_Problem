@@ -13,4 +13,11 @@ module load gcc/8.2.0
 export OMP_NUM_THREADS=2
 #export OMP_SCHEDULE=
 #export OMP_WAIT_POLICY=
-./poisson.gcc 64 10000 0.1
+
+mkdir -p sim
+rm -r sim/seq.txt
+
+for i in {1..24}
+do
+	./poisson.gcc jacobi $(($i*10)) 10000 0.1 >> sim/seq.txt
+done
