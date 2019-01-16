@@ -13,4 +13,4 @@ module load gcc/8.2.0
 export OMP_NUM_THREADS=2
 #export OMP_SCHEDULE=
 #export OMP_WAIT_POLICY=
-./main.gcc 64 10000 0.1
+./poisson.gcc 64 10000 0.1
