@@ -2,10 +2,10 @@
 #include <float.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include "iterator.h"
 #include "init.h"
 #include "datatools.h"
-#include "xtime.h"
 
 
 int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
@@ -43,7 +43,8 @@ int main(int argc, char *argv[]) {
     char *funcType;
     int bs;
     double mflops, memory;
-    double ts, te;
+    long ts, te;
+    struct timeval timecheck;
     int iterations;
 
     N = 512;
@@ -73,8 +74,8 @@ int main(int argc, char *argv[]) {
     double **f = generateF(N, gridspacing);
     double **u = generateU(N);
     // Initializing time
-    init_timer();
-    ts = xtime();
+    gettimeofday(&timecheck, NULL);
+    ts = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
 
     if (strcmp(funcType, "jacobi") == 0) {
         memory = ((N+2) * (N+2) * 2 + (N*N)) * sizeof(double);
@@ -87,14 +88,18 @@ int main(int argc, char *argv[]) {
         exit(1);
 
     }
-    te = xtime() - ts;
+    // Get elapsed time
+    gettimeofday(&timecheck, NULL);
+    te = (long)timecheck.tv_sec * 1000 + (long)timecheck.tv_usec / 1000;
+    long elapsed = (te - ts) / 1000;
+
     mflops = 1.0e-06 * iterations * (N * N * FLOP + 4); // +4 is for sqrt
-    mflops /= te;
+    mflops /= elapsed;
     memory /= 1024.0; // KB
 
 
     printf("%f\t", mflops); // MFLOP/S
-    printf("%f\t", te); // Time spent
+    printf("%.3f\t", (double) elapsed); // Time spent
     printf("%f\t", memory); // Mem footprint
     printf("%d\t", iterations); // iterations
     printf("%d\n", N); // N
