@@ -9,7 +9,7 @@
 #BSUB -R "rusage[mem=8GB]"
 module load gcc/8.2.0
 
-# Put environment variables in here and call main.gcc
+# Put environment variables in here and call poisson.gcc
 export OMP_NUM_THREADS=2
 #export OMP_SCHEDULE=
 #export OMP_WAIT_POLICY=
