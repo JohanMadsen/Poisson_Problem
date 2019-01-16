@@ -67,8 +67,8 @@ void jacobi(int N, int kmax, double threshold,double ** u, double ** f,double gr
         swap(&u,&uold);
         d=jacobiIteration(u,uold,f,gridspacingsqr,N);
         k+=1;
-        printf("%d  ",k);
     }
+    printf("%d  ",k);
     free_2d(uold);
 }
 
@@ -92,8 +92,8 @@ void gauss(int N, int kmax, double threshold,double ** u, double ** f,double gri
     while(d>threshold && k<kmax){
         d=gaussIteration(u,f,gridspacingsqr,N);
         k+=1;
-        printf("%d  ",k);
     }
+    printf("%d  ",k);
 }
 
 double ** generateF(int N, double gridspacing ){
