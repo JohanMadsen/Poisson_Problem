@@ -9,7 +9,7 @@ OPT	= -Ofast -march=native -fno-trapping-math -funroll-loops
 PARA	= -fopenmp
 CFLAGS	= $(DBG) $(OPT) $(PARA) $(XOPTS)
 
-LIBS	=
+LIBS	= -lm
 
 all: $(TARGET)
 

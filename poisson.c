@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
         memory = ((N+2) * (N+2) * 2 + (N*N)) * sizeof(double);
         iterations = jacobi(N, kmax, threshold, &u, &f, bs);
     } else if (strcmp(funcType, "gauss") == 0) {
-        printf("Running gauss\n");
         memory = ((N+2) * (N+2) + (N*N)) * sizeof(double);
         iterations = gauss(N, kmax, threshold, &u, &f, bs);
     } else {
@@ -94,8 +93,11 @@ int main(int argc, char *argv[]) {
     memory /= 1024.0; // KB
 
 
-    printf("MFLOP/S: %f\t", mflops);
-    printf("Memory FP: %f\n", memory);
+    printf("%f\t", mflops); // MFLOP/S
+    printf("%f\t", te); // Time spent
+    printf("%f\t", memory); // Mem footprint
+    printf("%d\t", iterations); // iterations
+    printf("%d\n", N); // N
     //print_matrix(u, N + 2);
     return 0;
 }
