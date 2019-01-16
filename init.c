@@ -10,7 +10,7 @@ double **generateF(int N, double gridspacing, int bs) {
     int i1, j1, i, j;
 #pragma omp parallel
     {
-#pragma omp for private(i1, j1, i, j, constant)
+#pragma omp for private(i1, j1, i, j, constant) schedule(static)
         for (i1 = 0; i1 < N; i1 += bs) {
             for (j1 = 0; j1 < N; j1 += bs) {
                 for (i = i1; i < MIN(i1 + bs, N); ++i) {
@@ -33,7 +33,7 @@ double **generateU(int N, int bs) {
     int i1, j1, i, j;
 #pragma omp parallel
     {
-#pragma omp for  private(i1, j1, i, j)
+#pragma omp for  private(i1, j1, i, j) schedule(static)
         for (i1 = 0; i1 < N + 2; i1 += bs) {
             for (j1 = 0; j1 < N + 2; j1 += bs) {
                 for (i = i1; i < MIN(i1 + bs, N + 2); ++i) {

@@ -20,6 +20,7 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
     while (d > threshold && k < kmax) {
         swap(u, &uold);
         d = jacobiIteration(u, &uold, f, N);
+//        d = jacobiIterationBlk(u, &uold, f, N, bs);
         k += 1;
     }
     free_2d(uold);
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
     // Get elapsed time
     gettimeofday(&timecheck, NULL);
     te = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
-    long elapsed = (te - ts) / 1000;
+    double elapsed = (double)(te - ts) / 1000;
 
     mflops = 1.0e-06 * iterations * (N * N * FLOP + 4); // +4 is for sqrt
     mflops /= elapsed;
