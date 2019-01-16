@@ -40,54 +40,63 @@ free_2d(double **A) {
     free(A);
 }
 
+void print_matrix(double ** M, int n){
+    printf("\n");
+    for (int i = 0; i <n ; ++i) {
+        for (int j = 0; j <n ; ++j) {
+            printf("%1.2f\t",M[i][j]);
+        }
+        printf("\n");
+    }
+}
 
-double jacobiIteration(double **u, double **uold, double **f, double gridspacingsqr, int N) {
+double jacobiIteration(double ***u, double ***uold, double ***f, double gridspacingsqr, int N) {
     double temp;
     double sum = 0;
-    for (int i = 1; i < N - 1; ++i) {
-        for (int j = 1; j < N - 1; ++j) {
-            temp = u[i][j];
-            u[i][j] = 0.25 * (uold[i][j - 1] + uold[i][j + 1] + uold[i - 1][j] + uold[i + 1][j] +
-                              f[i - 1][j - 1] * gridspacingsqr);
-            sum += (u[i][j] - temp) * (u[i][j] - temp);
+    for (int i = 1; i < N + 1; ++i) {
+        for (int j = 1; j < N + 1; ++j) {
+            temp = (*u)[i][j];
+            (*u)[i][j] = 0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
+                    (*f)[i - 1][j - 1] * gridspacingsqr);
+            sum += ((*u)[i][j] - temp) * ((*u)[i][j] - temp);
         }
     }
     return sqrt(sum);
 }
 
-void jacobi(int N, int kmax, double threshold, double **u, double **f, double gridspacingsqr) {
+void jacobi(int N, int kmax, double threshold, double ***u, double ***f, double gridspacingsqr) {
     double **uold = malloc_2d(N + 2, N + 2);
     for (int i = 0; i < N + 2; ++i) {
         for (int j = 0; j < N + 2; ++j) {
-            uold[i][j] = u[i][j];
+            uold[i][j] = (*u)[i][j];
         }
     }
     double d = DBL_MAX;
     int k = 0;
     while (d > threshold && k < kmax) {
-        swap(&u, &uold);
-        d = jacobiIteration(u, uold, f, gridspacingsqr, N);
+        swap(u, &uold);
+        d = jacobiIteration(u, &uold, f, gridspacingsqr, N);
         k += 1;
     }
     printf("%d  ", k);
     free_2d(uold);
 }
 
-double gaussIteration(double **u, double **f, double gridspacingsqr, int N) {
+double gaussIteration(double ***u, double ***f, double gridspacingsqr, int N) {
     double sum = 0;
     double temp;
     for (int i = 1; i < N + 1; ++i) {
         for (int j = 1; j < N + 1; ++j) {
-            temp = u[i][j];
-            u[i][j] = 0.25 * (u[i][j - 1] + u[i][j + 1] + u[i - 1][j] + u[i + 1][j] + f[i - 1][j - 1] * gridspacingsqr);
-            sum += (u[i][j] - temp) * (u[i][j] - temp);
+            temp = (*u)[i][j];
+            (*u)[i][j] = 0.25 * ((*u)[i][j - 1] + (*u)[i][j + 1] + (*u)[i - 1][j] + (*u)[i + 1][j] + (*f)[i - 1][j - 1] * gridspacingsqr);
+            sum += ((*u)[i][j] - temp) * ((*u)[i][j] - temp);
 
         }
     }
     return sqrt(sum);
 }
 
-void gauss(int N, int kmax, double threshold, double **u, double **f, double gridspacingsqr) {
+void gauss(int N, int kmax, double threshold, double ***u, double ***f, double gridspacingsqr) {
     double d = DBL_MAX;
     int k = 0;
     while (d > threshold && k < kmax) {
@@ -112,7 +121,7 @@ double **generateF(int N, double gridspacing) {
 }
 
 int main(int argc, char *argv[]) {
-    int N = 64;
+    int N = 8;
     int kmax = 10000;
     double threshold = 0.1;
 
@@ -123,7 +132,7 @@ int main(int argc, char *argv[]) {
         threshold = atof(argv[3]);
     }
 
-    double gridspacing = (double) 2 / (N - 1);
+    double gridspacing = (double) 2 / (N + 1);
     double **f = generateF(N, gridspacing);
     double **u = malloc_2d(N + 2, N + 2);
     for (int i = 0; i < N + 2; ++i) {
@@ -135,7 +144,9 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    jacobi(N, kmax, threshold, u, f, gridspacing * gridspacing);
-    gauss(N, kmax, threshold, u, f, gridspacing * gridspacing);
+    jacobi(N, kmax, threshold, &u, &f, gridspacing * gridspacing);
+    print_matrix(u,N+2);
+    gauss(N, kmax, threshold, &u, &f, gridspacing * gridspacing);
+    print_matrix(u,N+2);
     return 0;
 }
