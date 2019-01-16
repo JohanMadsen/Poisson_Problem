@@ -1,6 +1,6 @@
-SRCS	= main.c
+SRCS	= poisson.c init.c datatools.c iterator.c
 OBJS	= $(SRCS:.c=.o)
-TARGET	= main.$(CC)
+TARGET	= poisson.$(CC)
 
 CC	= gcc
 INCS	=

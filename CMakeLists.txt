@@ -3,4 +3,4 @@ project(Poisson_Problem C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Poisson_Problem main.c)
+add_executable(Poisson_Problem poisson.c)
