@@ -6,6 +6,8 @@
 #include "iterator.h"
 #include "init.h"
 #include "datatools.h"
+#include <math.h>
+#include <omp.h>
 
 
 int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
@@ -18,21 +20,30 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
     double d = DBL_MAX;
     int k = 0;
     int k_t = 0;
-    #pragma omp parallel shared(d, k) firstprivate(k_t)
-    {   
+    double d_t = DBL_MAX;
+#pragma omp parallel private(k_t) firstprivate(d_t)
+    {
+        k_t = 0;
         while (d > threshold && k_t < kmax) {
-        #pragma omp single
-        {
-            printf("%f %d\n", d, k_t);
-            swap(u, &uold);
-        }
-        jacobiIteration(u, &uold, f, N, &d);        
-        #pragma omp single
-        {
-            k += 1;
-        }
-        k_t = k;
-        #pragma omp barrier
+#pragma omp master
+            {
+                d = 0;
+                swap(u, &uold);
+                k += 1;
+            }
+
+            d_t = jacobiIteration(u, &uold, f, N);
+
+#pragma omp critical
+            {
+                printf("Critical d_t: %f %d \n", d_t, omp_get_thread_num());
+                d += d_t;
+                k_t = k;
+            }
+#pragma omp master
+            {
+                d = sqrt(d);
+            };
         }
     }
 
@@ -92,7 +103,7 @@ int main(int argc, char *argv[]) {
     ts = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
     f = generateF(N, gridspacing, bs);
     u = generateU(N, bs);
-        
+
     if (strcmp(funcType, "jacobi") == 0) {
         memory = ((N + 2) * (N + 2) * 2 + (N * N)) * sizeof(double);
         iterations = jacobi(N, kmax, threshold, &u, &f, bs);
@@ -103,7 +114,7 @@ int main(int argc, char *argv[]) {
         printf("First parameter should be either jacobi or gauss");
         exit(1);
     }
-    
+
 
     // Get elapsed time
     gettimeofday(&timecheck, NULL);

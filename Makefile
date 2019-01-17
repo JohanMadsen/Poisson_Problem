@@ -5,7 +5,7 @@ TARGET	= poisson.$(CC)
 CC	= suncc
 INCS	=
 DBG	= -g
-OPT	= -O3 -march=native -xrestrict -xvpara -xlibmopt -xlibmil
+OPT	= -O3 -march=native -xrestrict -xvpara -xlibmopt -xlibmil -xinstrument=datarace
 PARA	= -xopenmp
 CFLAGS	= $(DBG) $(OPT) $(PARA) $(XOPTS)
 
