@@ -1,4 +1,4 @@
-SRCS	= poisson.c init.c datatools.c iterator.c xtime.c
+SRCS	= poisson.c init.c datatools.c iterator.c
 OBJS	= $(SRCS:.c=.o)
 TARGET	= poisson.$(CC)
 

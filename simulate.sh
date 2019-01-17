@@ -4,22 +4,30 @@
 #BSUB -J POISSON
 #BSUB -o poisson_sim%J.out
 #BSUB -q hpcintro
-#BSUB -W 60
-#BSUB -n 1
-#BSUB -R "rusage[mem=8GB]"
+#BSUB -W 120
+#BSUB -n 16 -R "span[hosts=1]"
+#BSUB -R "rusage[mem=16GB]"
 module load gcc/8.2.0
 
 # Put environment variables in here and call poisson.gcc
-#export OMP_NUM_THREADS=2
 #export OMP_SCHEDULE=
 #export OMP_WAIT_POLICY=
 
 mkdir -p sim
-rm -r sim/seq_jacobi.txt
-rm -r sim/seq_gauss.txt
+rm -r sim/par_jacobi*.txt
 
-for i in {1..24}
+for i in {1..16}
 do
-	./poisson.gcc jacobi $(($i*100)) 1000000000 0.1 >> sim/seq_jacobi.txt
-	./poisson.gcc gauss $(($i*100)) 1000000000 0.1 >> sim/seq_gauss.txt
+	export OMP_NUM_THREADS=1
+	./poisson.gcc jacobi $(($i*50)) 20000 0.0 >> sim/par_jacobi_1.txt
+	export OMP_NUM_THREADS=2
+    ./poisson.gcc jacobi $(($i*50)) 20000 0.0 >> sim/par_jacobi_2.txt
+    export OMP_NUM_THREADS=4
+    ./poisson.gcc jacobi $(($i*50)) 20000 0.0 >> sim/par_jacobi_4.txt
+    export OMP_NUM_THREADS=8
+	./poisson.gcc jacobi $(($i*50)) 20000 0.0 >> sim/par_jacobi_8.txt
+	export OMP_NUM_THREADS=12
+    ./poisson.gcc jacobi $(($i*50)) 20000 0.0 >> sim/par_jacobi_12.txt
+	export OMP_NUM_THREADS=16
+    ./poisson.gcc jacobi $(($i*50)) 20000 0.0 >> sim/par_jacobi_16.txt
 done
