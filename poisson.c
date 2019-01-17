@@ -10,7 +10,7 @@
 #include <omp.h>
 
 
-int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
+int jacobi(int N, int kmax, double threshold, double ***u, double ***f) {
     double **uold = malloc_2d(N + 2, N + 2);
     for (int i = 0; i < N + 2; ++i) {
         for (int j = 0; j < N + 2; ++j) {
@@ -22,7 +22,9 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
 #pragma omp parallel
     {
         while (d > threshold && k < kmax) {
-#pragma omp barrier
+            if(k==kmax-1){
+                #pragma omp barrier
+            }
 #pragma omp single
             {
 
@@ -31,14 +33,12 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
             }
             jacobiIteration(u, &uold, f, N,&d);
         }
-
     }
-
     free_2d(uold);
     return k;
 }
 
-int gauss(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
+int gauss(int N, int kmax, double threshold, double ***u, double ***f) {
     double d = DBL_MAX;
     int k = 0;
     while (d > threshold && k < kmax) {
@@ -53,7 +53,6 @@ int main(int argc, char *argv[]) {
     int kmax;
     double threshold;
     char *funcType;
-    int bs;
     double mflops, memory;
     long ts, te;
     struct timeval timecheck;
@@ -63,7 +62,7 @@ int main(int argc, char *argv[]) {
     kmax = 10000;
     threshold = 0.1;
     funcType = "jacobi";
-    bs = N;
+
 
     // command line arguments for the three sizes above
     if (argc >= 2)
@@ -78,9 +77,6 @@ int main(int argc, char *argv[]) {
     if (argc >= 5)
         threshold = atof(argv[4]);
 
-    if (argc >= 6) {
-        bs = atoi(argv[5]);
-    }
 
     double gridspacing = (double) 2 / (N + 1);
 
@@ -88,15 +84,15 @@ int main(int argc, char *argv[]) {
     double **u;
     gettimeofday(&timecheck, NULL);
     ts = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
-    f = generateF(N, gridspacing, bs);
-    u = generateU(N, bs);
+    f = generateF(N, gridspacing);
+    u = generateU(N);
 
     if (strcmp(funcType, "jacobi") == 0) {
         memory = ((N + 2) * (N + 2) * 2 + (N * N)) * sizeof(double);
-        iterations = jacobi(N, kmax, threshold, &u, &f, bs);
+        iterations = jacobi(N, kmax, threshold, &u, &f);
     } else if (strcmp(funcType, "gauss") == 0) {
         memory = ((N + 2) * (N + 2) + (N * N)) * sizeof(double);
-        iterations = gauss(N, kmax, threshold, &u, &f, bs);
+        iterations = gauss(N, kmax, threshold, &u, &f);
     } else {
         printf("First parameter should be either jacobi or gauss");
         exit(1);

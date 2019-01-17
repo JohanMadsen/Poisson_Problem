@@ -66,7 +66,7 @@ void jacobiIteration(double ***u, double ***uold, double ***f, int N,double * d)
     {
         sum = 0;
     }
-#pragma omp for private(i, j) reduction(+: sum)
+#pragma omp for private(i, j) reduction(+: sum) schedule(runtime)
     for (i = 1; i < N + 1; ++i) {
         for (j = 1; j < N + 1; ++j) {
             (*u)[i][j] = 0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
