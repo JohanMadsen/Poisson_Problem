@@ -17,22 +17,22 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
     }
     double d = DBL_MAX;
     int k = 0;
-
-    #pragma omp parallel shared(d)
-    {
-        while (d > threshold && k < kmax) {
+    int k_t = 0;
+    #pragma omp parallel shared(d, k) firstprivate(k_t)
+    {   
+        while (d > threshold && k_t < kmax) {
         #pragma omp single
         {
-            printf("%f\n", d);
+            printf("%f %d\n", d, k_t);
             swap(u, &uold);
         }
-        //d = jacobiIteration(u, &uold, f, N);
         jacobiIteration(u, &uold, f, N, &d);        
-//        d = jacobiIterationBlk(u, &uold, f, N, bs);
-        #pragma omp master
+        #pragma omp single
         {
             k += 1;
         }
+        k_t = k;
+        #pragma omp barrier
         }
     }
 
