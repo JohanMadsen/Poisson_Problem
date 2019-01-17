@@ -19,32 +19,19 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
     }
     double d = DBL_MAX;
     int k = 0;
-    int k_t = 0;
-    double d_t = DBL_MAX;
-#pragma omp parallel private(k_t) firstprivate(d_t)
+#pragma omp parallel
     {
-        k_t = 0;
-        while (d > threshold && k_t < kmax) {
-#pragma omp master
+        while (d > threshold && k < kmax) {
+#pragma omp barrier
+#pragma omp single
             {
-                d = 0;
+
                 swap(u, &uold);
                 k += 1;
             }
-
-            d_t = jacobiIteration(u, &uold, f, N);
-
-#pragma omp critical
-            {
-                printf("Critical d_t: %f %d \n", d_t, omp_get_thread_num());
-                d += d_t;
-                k_t = k;
-            }
-#pragma omp master
-            {
-                d = sqrt(d);
-            };
+            jacobiIteration(u, &uold, f, N,&d);
         }
+
     }
 
     free_2d(uold);

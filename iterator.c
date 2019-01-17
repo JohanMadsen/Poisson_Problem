@@ -40,42 +40,45 @@ double gaussIterationBlk(double ***u, double ***f, int N, int bs) {
 }
 
 double jacobiIterationBlk(double ***u, double ***uold, double ***f, int N, int bs) {
-    double sum = 0;
+    double static sum = 0;
     int i1, j1, i, j;
-#pragma omp parallel
-    {
 #pragma omp for private(i1, j1, i, j) reduction(+: sum) schedule(runtime)
-        for (i1 = 1; i1 < N + 1; i1 += bs) {
-            for (j1 = 1; j1 < N + 1; j1 += bs) {
-                for (i = i1; i < MIN(i1 + bs, N + 1); ++i) {
-                    for (j = j1; j < MIN(j1 + bs, N + 1); ++j) {
-                        (*u)[i][j] =
-                                0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
-                                        (*f)[i - 1][j - 1]);
-                        sum += ((*u)[i][j] - (*uold)[i][j]) * ((*u)[i][j] - (*uold)[i][j]);
-                    }
+    for (i1 = 1; i1 < N + 1; i1 += bs) {
+        for (j1 = 1; j1 < N + 1; j1 += bs) {
+            for (i = i1; i < MIN(i1 + bs, N + 1); ++i) {
+                for (j = j1; j < MIN(j1 + bs, N + 1); ++j) {
+                    (*u)[i][j] =
+                            0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
+                                    (*f)[i - 1][j - 1]);
+                    sum += ((*u)[i][j] - (*uold)[i][j]) * ((*u)[i][j] - (*uold)[i][j]);
                 }
             }
         }
     }
+
     return sqrt(sum);
 }
 
-double jacobiIteration(double ***u, double ***uold, double ***f, int N) {
+void jacobiIteration(double ***u, double ***uold, double ***f, int N,double * d) {
     int i, j;
-    double sum = 0.0;
-    double temp;
-    //#pragma omp for private(i, j, temp) reduction(+: sum)
-        for (i = 1; i < N + 1; ++i) {
-            for (j = 1; j < N + 1; ++j) {
-                (*u)[i][j] = 0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
-                                     (*f)[i - 1][j - 1]);
-                temp = (*u)[i][j] - (*uold)[i][j];
-                sum += temp * temp;
-            }
+    static double sum = 0;
+#pragma omp single
+    {
+        sum = 0;
+    }
+#pragma omp for private(i, j) reduction(+: sum)
+    for (i = 1; i < N + 1; ++i) {
+        for (j = 1; j < N + 1; ++j) {
+            (*u)[i][j] = 0.25 * ((*uold)[i][j - 1] + (*uold)[i][j + 1] + (*uold)[i - 1][j] + (*uold)[i + 1][j] +
+                                 (*f)[i - 1][j - 1]);
+
+            sum += ((*u)[i][j] - (*uold)[i][j])*((*u)[i][j] - (*uold)[i][j]);
         }
-        printf("SUM: %f %d \n", sum, omp_get_thread_num());
-    return sum;
+    }
+#pragma omp single
+    {
+        (*d)=sqrt(sum);
+    }
 }
 
 double jacobiIteration2(double ***u, double ***uold, double ***f, int N) {

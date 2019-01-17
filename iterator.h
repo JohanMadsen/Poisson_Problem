@@ -2,7 +2,7 @@
 
 double gaussIteration(double ***u, double ***f, int N);
 
-double jacobiIteration(double ***u, double ***uold, double ***f, int N);
+void jacobiIteration(double ***u, double ***uold, double ***f, int N, double * d);
 
 double jacobiIteration2(double ***u, double ***uold, double ***f, int N);
 
