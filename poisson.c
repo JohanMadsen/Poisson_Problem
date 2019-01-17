@@ -17,12 +17,25 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
     }
     double d = DBL_MAX;
     int k = 0;
-    while (d > threshold && k < kmax) {
-        swap(u, &uold);
-        d = jacobiIteration(u, &uold, f, N);
+
+    #pragma omp parallel shared(d)
+    {
+        while (d > threshold && k < kmax) {
+        #pragma omp single
+        {
+            printf("%f\n", d);
+            swap(u, &uold);
+        }
+        //d = jacobiIteration(u, &uold, f, N);
+        jacobiIteration(u, &uold, f, N, &d);        
 //        d = jacobiIterationBlk(u, &uold, f, N, bs);
-        k += 1;
+        #pragma omp master
+        {
+            k += 1;
+        }
+        }
     }
+
     free_2d(uold);
     return k;
 }
@@ -75,15 +88,11 @@ int main(int argc, char *argv[]) {
 
     double **f;
     double **u;
-//#pragma omp parallel
-//    {
-    f = generateF(N, gridspacing, bs);
-    u = generateU(N, bs);
-    //   }
-    // Initializing time
     gettimeofday(&timecheck, NULL);
     ts = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
-
+    f = generateF(N, gridspacing, bs);
+    u = generateU(N, bs);
+        
     if (strcmp(funcType, "jacobi") == 0) {
         memory = ((N + 2) * (N + 2) * 2 + (N * N)) * sizeof(double);
         iterations = jacobi(N, kmax, threshold, &u, &f, bs);
@@ -93,12 +102,13 @@ int main(int argc, char *argv[]) {
     } else {
         printf("First parameter should be either jacobi or gauss");
         exit(1);
-
     }
+    
+
     // Get elapsed time
     gettimeofday(&timecheck, NULL);
     te = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
-    double elapsed = (double)(te - ts) / 1000;
+    double elapsed = (double) (te - ts) / 1000;
 
     mflops = 1.0e-06 * iterations * (N * N * FLOP + 4); // +4 is for sqrt
     mflops /= elapsed;

@@ -2,11 +2,11 @@ SRCS	= poisson.c init.c datatools.c iterator.c xtime.c
 OBJS	= $(SRCS:.c=.o)
 TARGET	= poisson.$(CC)
 
-CC	= gcc
+CC	= suncc
 INCS	=
 DBG	= -g
-OPT	= -Ofast -march=native -fno-trapping-math -funroll-loops
-PARA	= -fopenmp
+OPT	= -O3 -march=native -xrestrict -xvpara -xlibmopt -xlibmil
+PARA	= -xopenmp
 CFLAGS	= $(DBG) $(OPT) $(PARA) $(XOPTS)
 
 LIBS	= -lm
