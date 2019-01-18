@@ -10,8 +10,9 @@
 module load gcc/8.2.0
 
 # Put environment variables in here and call poisson.gcc
-#export OMP_SCHEDULE=
-#export OMP_WAIT_POLICY=
+#export OMP_SCHEDULE=ACTIVE
+#export OMP_WAIT_POLICY="guided, 4"
+export OMP_PROC_BIND=true
 
 mkdir -p sim
 rm -r sim/par_jacobi_advanced*.txt

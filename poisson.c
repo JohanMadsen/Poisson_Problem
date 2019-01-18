@@ -22,12 +22,10 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f) {
 #pragma omp parallel
     {
         while (d > threshold && k < kmax) {
-            if(k==kmax-1){
-                #pragma omp barrier
-            }
+            #pragma omp barrier
+
 #pragma omp single
             {
-
                 swap(u, &uold);
                 k += 1;
             }
