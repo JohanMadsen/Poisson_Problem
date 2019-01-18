@@ -6,7 +6,7 @@ CC	= gcc
 INCS	=
 DBG	= -g
 OPT	= -Ofast -march=native -fno-trapping-math -funroll-loops
-PARA	= -fopenmp
+PARA	= 
 CFLAGS	= $(DBG) $(OPT) $(PARA) $(XOPTS)
 
 LIBS	= -lm
