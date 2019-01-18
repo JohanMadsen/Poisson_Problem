@@ -1,6 +1,6 @@
 
-double **generateF(int N, double gridspacing, int bs);
-double **generateU(int N, int bs);
+double **generateF(int N, double gridspacing);
+double **generateU(int N);
 
 #ifndef C_INIT_H
 #define C_INIT_H

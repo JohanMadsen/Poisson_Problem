@@ -1,4 +1,4 @@
-#define FLOP 9
+#define FLOP 7
 
 double gaussIteration(double ***u, double ***f, int N);
 

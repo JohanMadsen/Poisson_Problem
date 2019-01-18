@@ -10,7 +10,7 @@
 #include <omp.h>
 
 
-int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
+int jacobi(int N, int kmax, double threshold, double ***u, double ***f) {
     double **uold = malloc_2d(N + 2, N + 2);
     for (int i = 0; i < N + 2; ++i) {
         for (int j = 0; j < N + 2; ++j) {
@@ -19,39 +19,18 @@ int jacobi(int N, int kmax, double threshold, double ***u, double ***f, int bs) 
     }
     double d = DBL_MAX;
     int k = 0;
-    int k_t = 0;
-    double d_t = DBL_MAX;
-#pragma omp parallel private(k_t) firstprivate(d_t)
-    {
-        k_t = 0;
-        while (d > threshold && k_t < kmax) {
-#pragma omp master
-            {
-                d = 0;
-                swap(u, &uold);
-                k += 1;
-            }
 
-            d_t = jacobiIteration(u, &uold, f, N);
-
-#pragma omp critical
-            {
-                printf("Critical d_t: %f %d \n", d_t, omp_get_thread_num());
-                d += d_t;
-                k_t = k;
-            }
-#pragma omp master
-            {
-                d = sqrt(d);
-            };
-        }
+    while (d > threshold && k < kmax) {
+        swap(u, &uold);
+        d = jacobiIteration(u, &uold, f, N);
+        k += 1;
     }
 
     free_2d(uold);
     return k;
 }
 
-int gauss(int N, int kmax, double threshold, double ***u, double ***f, int bs) {
+int gauss(int N, int kmax, double threshold, double ***u, double ***f) {
     double d = DBL_MAX;
     int k = 0;
     while (d > threshold && k < kmax) {
@@ -66,7 +45,6 @@ int main(int argc, char *argv[]) {
     int kmax;
     double threshold;
     char *funcType;
-    int bs;
     double mflops, memory;
     long ts, te;
     struct timeval timecheck;
@@ -76,7 +54,6 @@ int main(int argc, char *argv[]) {
     kmax = 10000;
     threshold = 0.1;
     funcType = "jacobi";
-    bs = N;
 
     // command line arguments for the three sizes above
     if (argc >= 2)
@@ -91,30 +68,28 @@ int main(int argc, char *argv[]) {
     if (argc >= 5)
         threshold = atof(argv[4]);
 
-    if (argc >= 6) {
-        bs = atoi(argv[5]);
-    }
-
     double gridspacing = (double) 2 / (N + 1);
 
-    double **f;
-    double **u;
+    double **f = generateF(N, gridspacing);
+    double **u;// = generateU(N);
+
     gettimeofday(&timecheck, NULL);
     ts = (long) timecheck.tv_sec * 1000 + (long) timecheck.tv_usec / 1000;
-    f = generateF(N, gridspacing, bs);
-    u = generateU(N, bs);
 
-    if (strcmp(funcType, "jacobi") == 0) {
-        memory = ((N + 2) * (N + 2) * 2 + (N * N)) * sizeof(double);
-        iterations = jacobi(N, kmax, threshold, &u, &f, bs);
-    } else if (strcmp(funcType, "gauss") == 0) {
-        memory = ((N + 2) * (N + 2) + (N * N)) * sizeof(double);
-        iterations = gauss(N, kmax, threshold, &u, &f, bs);
-    } else {
-        printf("First parameter should be either jacobi or gauss");
-        exit(1);
+    int loop = (N <= 200) ? 10 : 1;
+    for (int i = 0; i < loop; i++) {
+        u = generateU(N);
+        if (strcmp(funcType, "jacobi") == 0) {
+            memory = ((N + 2) * (N + 2) * 2 + (N * N)) * sizeof(double);
+            iterations = jacobi(N, kmax, threshold, &u, &f);
+        } else if (strcmp(funcType, "gauss") == 0) {
+            memory = ((N + 2) * (N + 2) + (N * N)) * sizeof(double);
+            iterations = gauss(N, kmax, threshold, &u, &f);
+        } else {
+            printf("First parameter should be either jacobi or gauss");
+            exit(1);
+        }
     }
-
 
     // Get elapsed time
     gettimeofday(&timecheck, NULL);
